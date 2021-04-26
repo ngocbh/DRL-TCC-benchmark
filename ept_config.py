@@ -11,6 +11,7 @@ class Ept1(Config):
     # ept 1 settings
     solvers = ['drl', 'random']
     num_targets = 10
+    test_size = 10
     min_num_sensors = 20
     max_num_sensors = 30
 
@@ -20,6 +21,7 @@ class Ept2(Config):
     solvers = ['drl', 'random']
     num_targets = 10
     num_sensors = 20
+    test_size = 10
     k_bit = 20000000
     step = 0.1
     min_prob = 0.1

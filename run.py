@@ -2,7 +2,6 @@ import sys
 sys.path.append('./drl')
 
 import random_strategy
-import main as drl
 from utils import device, pdump, pload
 from utils import WRSNDataset
 from utils import WrsnParameters as wp, DrlParameters as dp
@@ -18,21 +17,6 @@ import argparse
 import os
 
 
-
-def run_drl(data_loader, name, save_dir):
-    actor = MCActor(dp.MC_INPUT_SIZE,
-                    dp.SN_INPUT_SIZE,
-                    dp.hidden_size,
-                    dp.dropout).to(device)
-
-    save_dir = os.path.join(save_dir, name)
-    checkpoint = ec.checkpoint
-    path = os.path.join(checkpoint, 'actor.pt')
-    actor.load_state_dict(torch.load(path, device))
-
-    ret = drl.validate(data_loader, actor, render=False)
-
-    return ret
 
 def run_random(data_loader, name, save_dir):
     save_dir = os.path.join(save_dir, name)
@@ -71,7 +55,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=False):
         used_solvers = ec.ept1.solvers
         res = defaultdict(list)
         for num_sensors in range(min_num_sensors, max_num_sensors):
-            test_data = WRSNDataset(num_sensors, num_targets, dp.test_size, seed)
+            test_data = WRSNDataset(num_sensors, num_targets, ec.ept1.test_size, seed)
             data_loader = DataLoader(test_data, 1, False, num_workers=0)
             for name, solver in solvers.items():
                 if name in used_solvers:
@@ -89,7 +73,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=False):
         used_solvers = ec.ept2.solvers
         res = defaultdict(list)
         for prob in np.arange(min_prob, max_prob, step):
-            test_data = WRSNDataset(num_sensors, num_targets, dp.test_size, seed)
+            test_data = WRSNDataset(num_sensors, num_targets, ec.ept2.test_size, seed)
             data_loader = DataLoader(test_data, 1, False, num_workers=0)
             wp.k_bit = ec.ept2.k_bit * prob
             for name, solver in solvers.items():
