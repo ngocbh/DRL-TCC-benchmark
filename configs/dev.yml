@@ -1,8 +1,7 @@
 ec:
   __dictpath__: ec
   __doc__: null
-  checkpoint: drl/checkpoints/mc_20_10_0/21
-  drl_config: drl/configs/dev.yml
+  drl_config: model001/configs/dev.yml
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
@@ -10,7 +9,7 @@ ec:
     min_num_sensors: 20
     num_targets: 10
     solvers:
-    - drl
+    - model001
     - random
     test_size: 10
   ept2:
@@ -22,8 +21,8 @@ ec:
     num_sensors: 20
     num_targets: 10
     solvers:
-    - drl
+    - model001
     - random
     step: 0.1
     test_size: 10
-  wrsn_config: drl/configs/dev.yml
+  wrsn_config: model001/configs/dev.yml

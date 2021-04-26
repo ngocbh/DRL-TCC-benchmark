@@ -14,6 +14,7 @@ class Ept1(Config):
     test_size = 10
     min_num_sensors = 20
     max_num_sensors = 30
+    k_bit = 8000000
 
 class Ept2(Config):
     __dictpath__ = 'ec.ept2'
