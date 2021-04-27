@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model001')
+sys.path.insert(0, './model002')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
@@ -15,13 +15,12 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-import model001
+import model002
 
 solvers = {
-    "model001": model001.run,
-    "random": model001.run_random
+    "model002": model002.run,
+    "random": model002.run_random
 }
-
 
 
 def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True):
@@ -127,7 +126,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
-
+        
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', save_dir)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)

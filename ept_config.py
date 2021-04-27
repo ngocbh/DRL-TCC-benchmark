@@ -1,5 +1,5 @@
 import sys
-sys.path.append('./drl')
+sys.path.append('./model002')
 
 from utils import Config
 import argparse
@@ -9,7 +9,7 @@ class Ept1(Config):
     __dictpath__ = 'ec.ept1'
 
     # ept 1 settings
-    solvers = ['drl', 'random']
+    solvers = ['model002', 'random']
     num_targets = 10
     test_size = 10
     min_num_sensors = 20
@@ -19,13 +19,13 @@ class Ept1(Config):
 class Ept2(Config):
     __dictpath__ = 'ec.ept2'
 
-    solvers = ['drl', 'random']
+    solvers = ['model002', 'random']
     num_targets = 10
     num_sensors = 20
-    test_size = 10
+    test_size = 30
     k_bit = 20000000
     step = 0.1
-    min_prob = 0.1
+    min_prob = 0.3
     max_prob = 1
 
 
@@ -33,10 +33,10 @@ class EptConfig(Config):
     __dictpath__ = 'ec'
 
     # other configs
-    wrsn_config = 'drl/configs/dev.yml'
-    drl_config = 'drl/configs/dev.yml'
+    wrsn_config = 'model002/configs/dev.yml'
+    drl_config = 'model002/configs/dev.yml'
 
-    checkpoint = 'drl/checkpoints/mc_20_10_0/21'
+    checkpoint = 'model002/checkpoints/mc_20_10_0/21'
 
     ept1 = Ept1
     ept2 = Ept2
