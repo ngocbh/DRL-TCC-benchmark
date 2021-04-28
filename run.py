@@ -23,16 +23,27 @@ solvers = {
 }
 
 
-def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True):
-    plt.style.use('seaborn-white')
+def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
+                  yscale=None, smooth_k=1):
+    def smooth(y, box_pts):
+        box = np.ones(box_pts)/box_pts
+        y_smooth = np.convolve(y, box, mode='same')
+        return y_smooth
 
+    plt.style.use('seaborn-darkgrid')
+    
     fig, ax = plt.subplots()
     for name, (mean, std) in data.items():
-        ax.plot(x, mean, label=name)
+        ax.plot(x, smooth(mean, smooth_k), label=name)
         if plot_std:
-            ax.fill_between(x, mean - std, mean + std, alpha=0.2)
+            ax.fill_between(x, 
+                            smooth(np.clip(mean - std, 0.0, np.inf), smooth_k), 
+                            smooth(np.clip(mean + std, 0.0, np.inf), smooth_k), 
+                            alpha=0.2)
 
     ax.legend(frameon=True)
+    if yscale is not None:
+        plt.yscale(yscale)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     # ax.set_title(title)
@@ -71,10 +82,10 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         step = ec.ept2.step
 
         res = defaultdict(list)
+        test_data = WRSNDataset(num_sensors, num_targets, ec.ept2.test_size, seed)
+        data_loader = DataLoader(test_data, 1, False, num_workers=0)
 
         for prob in np.arange(min_prob, max_prob, step):
-            test_data = WRSNDataset(num_sensors, num_targets, ec.ept2.test_size, seed)
-            data_loader = DataLoader(test_data, 1, False, num_workers=0)
             wp.k_bit = ec.ept2.k_bit * prob
 
             for name, solver in solvers.items():
@@ -127,7 +138,8 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
         
-    plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', save_dir)
+    plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', 
+                  save_dir, yscale='log', smooth_k=4)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
 

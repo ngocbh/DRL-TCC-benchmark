@@ -26,4 +26,4 @@ ec:
     - random
     step: 0.1
     test_size: 30
-  wrsn_config: model002/configs/mc_20_10_1_small.yml
+  wrsn_config: model002/configs/mc_20_10_2_small.yml
