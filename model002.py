@@ -18,14 +18,14 @@ def run(data_loader, name, save_dir):
                     dp.dropout).to(device)
 
     save_dir = os.path.join(save_dir, name)
-    checkpoint = 'model002/checkpoints/mc_20_10_2_small'
+    checkpoint = 'model002/checkpoints/mc_20_10_2_small/6'
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
-    ret = model002.validate(data_loader, actor, render=False, max_step=3000)
+    ret = model002.validate(data_loader, actor, render=False, max_step=5000)
 
     return ret
 
 def run_random(data_loader, name, save_dir):
     save_dir = os.path.join(save_dir, name)
-    return random_strategy.validate(data_loader, save_dir)
+    return random_strategy.validate(data_loader, save_dir, max_step=5000)
