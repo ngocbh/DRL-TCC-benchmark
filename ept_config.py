@@ -9,7 +9,7 @@ class Ept1(Config):
     __dictpath__ = 'ec.ept1'
 
     # ept 1 settings
-    solvers = ['model002', 'random']
+    solvers = ['model002', 'imna', 'random']
     num_targets = 10
     test_size = 10
     min_num_sensors = 20
@@ -19,14 +19,27 @@ class Ept1(Config):
 class Ept2(Config):
     __dictpath__ = 'ec.ept2'
 
-    solvers = ['model002', 'random']
+    solvers = ['model002', 'imna', 'random']
     num_targets = 10
     num_sensors = 20
-    test_size = 30
+    test_size = 10
     k_bit = 20000000
     step = 0.1
-    min_prob = 0.3
+    min_prob = 0.1
     max_prob = 1
+
+class Ept3(Config):
+    __dictpath__ = 'ec.ept3'
+
+    solvers = ['model002', 'imna', 'random']
+    num_targets = 10
+    num_sensors = 20
+    test_size = 10
+    k_bit = 20000000
+    step = 0.1
+    min_prob = 0.1
+    max_prob = 1
+    
 
 
 class EptConfig(Config):
@@ -35,11 +48,12 @@ class EptConfig(Config):
     # other configs
     wrsn_config = 'model002/configs/dev.yml'
     drl_config = 'model002/configs/dev.yml'
-
     checkpoint = 'model002/checkpoints/mc_20_10_0/21'
+    max_episode_step = 2000
 
     ept1 = Ept1
     ept2 = Ept2
+    ept3 = Ept3
 
 
 

@@ -8,9 +8,10 @@ from model import MCActor
 import main as model002
 import os
 import torch
-import random_strategy
+from random_strategy import random_decision_maker
+from main import decision_maker
 
-def run(data_loader, name, save_dir):
+def run(data_loader, name, save_dir, max_step=1000):
     actor = MCActor(dp.MC_INPUT_SIZE,
                     dp.DEPOT_INPUT_SIZE,
                     dp.SN_INPUT_SIZE,
@@ -22,11 +23,10 @@ def run(data_loader, name, save_dir):
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
-    ret = model002.validate(data_loader, actor, max_step=5000,
+    ret = model002.validate(data_loader, decision_maker, (actor,), max_step=max_step,
                             render=False, verbose=False)
-
     return ret
 
-def run_random(data_loader, name, save_dir):
+def run_random(data_loader, name, save_dir, max_step=1000):
     save_dir = os.path.join(save_dir, name)
-    return random_strategy.validate(data_loader, save_dir, max_step=5000)
+    return model002.validate(data_loader, random_decision_maker, normalize=False, max_step=max_step)

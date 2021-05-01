@@ -32,7 +32,7 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
 
         t_mc_i = d_mc_i / mc_state[6]
         d_i_bs = dist(Point(sn_state[i, 0], sn_state[i, 1]),
-                      Point(**wp.sink))
+                      Point(**wp.depot))
 
         if mc_state[2] - mc_state[4] * d_mc_i - \
             (sn_state[i, 2] - sn_state[i, 4] + sn_state[i, 5] * t_mc_i) \
@@ -45,7 +45,7 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
             no_requests += 1
 
     if no_requests == 0: 
-        return np.random.choice(torch.nonzero(mask__).squeeze()), 0.0
+        return np.random.choice(np.nonzero(mask__.cpu().numpy())[0]), 0.0
 
     latency = sn_state[:, 4] / sn_state[:, 5]
     w = torch.zeros(n, n).to(device)
@@ -74,12 +74,13 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
     else:
         return 0, 1.0
 
-def run_imna(data_loader, name, save_dir):
-    return validate(data_loader, imna_decision_maker, normalize=False)
+def run_imna(data_loader, name, save_dir, max_step=1000):
+    return validate(data_loader, imna_decision_maker, normalize=False, max_step=max_step)
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     torch.set_printoptions(sci_mode=False)
     dataset = WRSNDataset(20, 10, 10, 1)
+    wp.k_bit = 2000000
     data_loader = DataLoader(dataset, 1, False, num_workers=0)
     validate(data_loader, imna_decision_maker, render=True, verbose=True, normalize=False)

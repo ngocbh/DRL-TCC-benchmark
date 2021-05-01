@@ -16,19 +16,21 @@ import argparse
 import os
 
 import model002
+import imna
 
 solvers = {
     "model002": model002.run,
-    "random": model002.run_random
+    "imna": imna.run_imna,
+    "random": model002.run_random,
 }
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
 
 def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
                   yscale=None, smooth_k=1):
-    def smooth(y, box_pts):
-        box = np.ones(box_pts)/box_pts
-        y_smooth = np.convolve(y, box, mode='same')
-        return y_smooth
 
     plt.style.use('seaborn-darkgrid')
     
@@ -59,6 +61,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         min_num_sensors = ec.ept1.min_num_sensors
         max_num_sensors = ec.ept1.max_num_sensors
         wp.k_bit = ec.ept1.k_bit
+        max_episode_step = ec.max_episode_step
         
         res = defaultdict(list)
         for num_sensors in range(min_num_sensors, max_num_sensors):
@@ -68,7 +71,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
                         print(f"running on {num_sensors, name}")
-                        ret = solver(data_loader, name, save_dir)
+                        ret = solver(data_loader, name, save_dir, max_episode_step)
                         res[name].append((num_sensors, ret))
 
         for key, value in res.items():                
@@ -80,6 +83,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         min_prob = ec.ept2.min_prob
         max_prob = ec.ept2.max_prob
         step = ec.ept2.step
+        max_episode_step = ec.max_episode_step
 
         res = defaultdict(list)
         test_data = WRSNDataset(num_sensors, num_targets, ec.ept2.test_size, seed)
@@ -92,7 +96,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
                         print(f"running on {prob, name}")
-                        ret = solver(data_loader, name, save_dir)
+                        ret = solver(data_loader, name, save_dir, max_episode_step)
                         res[name].append((prob, ret))
             
         for key, value in res.items():                
@@ -144,7 +148,6 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', '-s', default=123, type=int)
@@ -163,6 +166,9 @@ if __name__ == '__main__':
 
     wp.from_file(ec.wrsn_config)
     dp.from_file(ec.drl_config)
+    
+    torch.manual_seed(seed-1)
+    np.random.seed(seed-2)
 
     if args.rerun is None:
         rerun = []

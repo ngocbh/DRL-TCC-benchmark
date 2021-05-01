@@ -2,7 +2,7 @@ ec:
   __dictpath__: ec
   __doc__: null
   checkpoint: model002/checkpoints/mc_20_10_0/21
-  drl_config: model002/configs/mc_20_10_2_small.yml
+  drl_config: model002/configs/dev.yml
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
@@ -12,8 +12,9 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - imna
     - random
-    test_size: 2
+    test_size: 10
   ept2:
     __dictpath__: ec.ept2
     __doc__: null
@@ -24,7 +25,22 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - imna
     - random
     step: 0.1
-    test_size: 2
-  wrsn_config: model002/configs/mc_20_10_2_small.yml
+    test_size: 30
+  ept3:
+    __dictpath__: ec.ept3
+    __doc__: null
+    k_bit: 20000000
+    max_prob: 1
+    min_prob: 0.3
+    num_sensors: 20
+    num_targets: 10
+    solvers:
+    - model002
+    - imna
+    - random
+    step: 0.1
+    test_size: 30
+  wrsn_config: model002/configs/dev.yml
