@@ -16,8 +16,10 @@ from utils import NetworkInput, Point
 from utils import gen_cgrg, dist
 from utils import device
 from main import validate
+from random_strategy import random_decision_maker
 
 def imna_decision_maker(mc_state, depot_state, sn_state, mask):
+
     mask_ = mask.clone()
     mask__ = mask.clone()
     mask_[0] = 0.0
@@ -33,9 +35,10 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
         t_mc_i = d_mc_i / mc_state[6]
         d_i_bs = dist(Point(sn_state[i, 0], sn_state[i, 1]),
                       Point(**wp.depot))
-
+        t_charge_i = (sn_state[i, 2] - sn_state[i, 4] + sn_state[i, 5] * t_mc_i) / \
+                    (mc_state[5] - sn_state[i, 5])
         if mc_state[2] - mc_state[4] * d_mc_i - \
-            (sn_state[i, 2] - sn_state[i, 4] + sn_state[i, 5] * t_mc_i) \
+            (sn_state[i, 2] - sn_state[i, 4] + sn_state[i, 5] * (t_mc_i + t_charge_i)) \
             - mc_state[4] * d_i_bs < 0:
             mask_[i+1] = 0.0
             mask__[i+1] = 0.0
@@ -80,7 +83,11 @@ def run_imna(data_loader, name, save_dir, max_step=1000):
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)
     torch.set_printoptions(sci_mode=False)
-    dataset = WRSNDataset(20, 10, 10, 1)
-    wp.k_bit = 2000000
+    seed=123
+    torch.manual_seed(seed-1)
+    np.random.seed(seed-2)
+    dataset = WRSNDataset(20, 10, 1, 1)
+    wp.k_bit = 6000000
     data_loader = DataLoader(dataset, 1, False, num_workers=0)
-    validate(data_loader, imna_decision_maker, render=True, verbose=True, normalize=False)
+    validate(data_loader, imna_decision_maker, render=False, verbose=True, normalize=False)
+    # validate(data_loader, random_decision_maker, render=False, verbose=True, normalize=False)

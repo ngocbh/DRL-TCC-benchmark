@@ -3,7 +3,7 @@ sys.path.insert(0, './model002')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
-from utils import WrsnParameters as wp, DrlParameters as dp
+from utils import WrsnParameters, DrlParameters
 from model import MCActor
 from environment import WRSNEnv
 from ept_config import EptConfig as ec
@@ -14,9 +14,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
-
+from main import decision_maker
+from random_strategy import random_decision_maker
+from imna import imna_decision_maker
 import model002
 import imna
+
 
 def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
              render=False, verbose=False, max_step=None, normalize=True):
@@ -27,8 +30,6 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
     times = [0]
     net_lifetimes = []
     mc_travel_dists = []
-    mean_aggregated_ecrs = []
-    mean_node_failures = []
     inf_lifetimes = []
 
     for idx, data in enumerate(data_loader):
@@ -48,8 +49,6 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
         sn_state = torch.from_numpy(sn_state).to(dtype=torch.float32, device=device)
 
         rewards = []
-        aggregated_ecrs = []
-        node_failures = []
 
         mask = torch.ones(env.action_space.n).to(device)
 
@@ -79,8 +78,6 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
                        (env.net.network_lifetime, env.mc.cur_energy))
 
             rewards.append(reward)
-            aggregated_ecrs.append(env.net.aggregated_ecr)
-            node_failures.append(env.net.node_failures)
 
             if done:
                 if verbose: print("End episode! Press any button to continue...")
@@ -101,6 +98,38 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
     ret['inf_lifetimes'] = inf_lifetimes
     return ret
 
+def run(data_loader, name, save_dir, max_step=1000):
+    actor = MCActor(dp.MC_INPUT_SIZE,
+                    dp.DEPOT_INPUT_SIZE,
+                    dp.SN_INPUT_SIZE,
+                    dp.hidden_size,
+                    dp.dropout).to(device)
+
+    save_dir = os.path.join(save_dir, name)
+    checkpoint = 'model002/checkpoints/mc_20_10_2_small/6'
+    path = os.path.join(checkpoint, 'actor.pt')
+    actor.load_state_dict(torch.load(path, device))
+
+    ret = validate(data_loader, decision_maker, (actor,), max_step=max_step,
+                            render=False, verbose=False)
+    return ret
+
+def run_random(data_loader, name, save_dir, max_step=1000):
+    save_dir = os.path.join(save_dir, name)
+    return validate(data_loader, random_decision_maker, normalize=False, max_step=max_step)
+
+
+solvers = {
+    "model002": run_model002,
+    "imna": run_imna,
+    "random": run_random,
+}
+
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
 def run_ept_3(seed=123, save_dir='results', rerun=[]):
     used_solvers = ec.ept3.solvers
 
@@ -117,8 +146,9 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         data_loader = DataLoader(test_data, 1, False, num_workers=0)
 
         for prob in np.arange(min_prob, max_prob, step):
+            wp = WrsnParameters()
             wp.k_bit = ec.ept3.k_bit * prob
-
+            print(wp.k_bit)
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
@@ -151,13 +181,10 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
         plt.close('all')
 
-    save_dir = os.path.join(save_dir, f'ept_{ept}')
+    save_dir = os.path.join(save_dir, f'ept_{3}')
     os.makedirs(save_dir, exist_ok=True)
-    
-    if ept == 1:
-        run_ept_1(save_dir)
-    elif ept == 2:
-        run_ept_2(save_dir)
+
+    run(save_dir)
 
     data = {}
     for name in used_solvers:
@@ -182,8 +209,6 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', '-s', default=123, type=int)
-    parser.add_argument('--ept', '-e', dest='epts', 
-                        action='append', required=True, type=int)
     parser.add_argument('--config', '-cf', default=None, type=str)
     parser.add_argument('--rerun', dest='rerun', nargs='*')
 
@@ -195,8 +220,11 @@ if __name__ == '__main__':
         basename = os.path.splitext(os.path.basename(args.config))[0]
         save_dir = os.path.join(save_dir, basename)
 
-    wp.from_file(ec.wrsn_config)
-    dp.from_file(ec.drl_config)
+    WrsnParameters.from_file(ec.wrsn_config)
+    DrlParameters.from_file(ec.drl_config)
+
+    torch.manual_seed(args.seed-1)
+    np.random.seed(args.seed-2)
 
     if args.rerun is None:
         rerun = []
