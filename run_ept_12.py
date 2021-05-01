@@ -166,9 +166,9 @@ if __name__ == '__main__':
 
     wp.from_file(ec.wrsn_config)
     dp.from_file(ec.drl_config)
-    
-    torch.manual_seed(seed-1)
-    np.random.seed(seed-2)
+
+    torch.manual_seed(args.seed-1)
+    np.random.seed(args.seed-2)
 
     if args.rerun is None:
         rerun = []
