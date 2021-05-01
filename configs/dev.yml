@@ -1,7 +1,8 @@
 ec:
   __dictpath__: ec
   __doc__: null
-  drl_config: model002/configs/dev.yml
+  checkpoint: model002/checkpoints/mc_20_10_0/21
+  drl_config: model002/configs/mc_20_10_2_small.yml
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
@@ -12,7 +13,7 @@ ec:
     solvers:
     - model002
     - random
-    test_size: 30
+    test_size: 2
   ept2:
     __dictpath__: ec.ept2
     __doc__: null
@@ -25,5 +26,5 @@ ec:
     - model002
     - random
     step: 0.1
-    test_size: 30
+    test_size: 2
   wrsn_config: model002/configs/mc_20_10_2_small.yml

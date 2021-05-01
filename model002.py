@@ -22,7 +22,8 @@ def run(data_loader, name, save_dir):
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
-    ret = model002.validate(data_loader, actor, render=False, max_step=5000)
+    ret = model002.validate(data_loader, actor, max_step=5000,
+                            render=False, verbose=False)
 
     return ret
 
