@@ -3,6 +3,7 @@ ec:
   __doc__: null
   checkpoint: model002/checkpoints/mc_20_10_0/21
   drl_config: model002/configs/dev.yml
+  max_episode_step: 100
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
@@ -28,7 +29,7 @@ ec:
     - imna
     - random
     step: 0.1
-    test_size: 30
+    test_size: 10
   ept3:
     __dictpath__: ec.ept3
     __doc__: null
@@ -42,5 +43,5 @@ ec:
     - imna
     - random
     step: 0.1
-    test_size: 30
+    test_size: 10
   wrsn_config: model002/configs/dev.yml

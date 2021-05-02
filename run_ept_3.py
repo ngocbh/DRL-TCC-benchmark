@@ -3,7 +3,7 @@ sys.path.insert(0, './model002')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
-from utils import WrsnParameters, DrlParameters
+from utils import WrsnParameters, DrlParameters as dp
 from model import MCActor
 from environment import WRSNEnv
 from ept_config import EptConfig as ec
@@ -17,26 +17,27 @@ import os
 from main import decision_maker
 from random_strategy import random_decision_maker
 from imna import imna_decision_maker
+from ept_config import EptConfig
 import model002
 import imna
+import itertools
 
 
-def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
-             render=False, verbose=False, max_step=None, normalize=True):
+
+def validate(data_loader, decision_maker, args=None, 
+             wp=WrsnParameters, prob_range=(0.3, 0.4), max_step=None,
+             render=False, verbose=False, normalize=True):
 
     rewards = []
-    mean_policy_losses = []
-    mean_entropies = []
-    times = [0]
-    net_lifetimes = []
-    mc_travel_dists = []
     inf_lifetimes = []
+    k_bit = wp.k_bit
 
     for idx, data in enumerate(data_loader):
         if verbose: print("Test %d" % idx)
 
         sensors, targets = data
-
+        package_generation_prob = np.random.uniform(*prob_range)
+        wp.k_bit = k_bit * package_generation_prob
         env = WRSNEnv(sensors=sensors.squeeze(), 
                       targets=targets.squeeze(), 
                       wp=wp,
@@ -65,7 +66,6 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
             mask[env.last_action] = 1.0
             (mc_state, depot_state, sn_state), reward, done, _ = env.step(action)
             mask[env.last_action] = 0.0
-            # mask[0] = 1.0
                 
             mc_state = torch.from_numpy(mc_state).to(dtype=torch.float32, device=device)
             depot_state = torch.from_numpy(depot_state).to(dtype=torch.float32, device=device)
@@ -91,14 +91,15 @@ def validate(data_loader, decision_maker, args=None, wp=WrsnParameters,
                 time.sleep(0.5)
                 # pass
 
-        inf_lifetimes.append(env.get_network_lifetime() 
-                             if done else np.inf)
+        lifetime = env.get_network_lifetime() if done else np.inf
+        inf_lifetimes.append((package_generation_prob, lifetime))
 
+    wp.k_bit = k_bit
     ret = {}
     ret['inf_lifetimes'] = inf_lifetimes
     return ret
 
-def run(data_loader, name, save_dir, max_step=1000):
+def run_model002(data_loader, name, save_dir, wp, prob_range, max_step=1000):
     actor = MCActor(dp.MC_INPUT_SIZE,
                     dp.DEPOT_INPUT_SIZE,
                     dp.SN_INPUT_SIZE,
@@ -110,13 +111,19 @@ def run(data_loader, name, save_dir, max_step=1000):
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
-    ret = validate(data_loader, decision_maker, (actor,), max_step=max_step,
-                            render=False, verbose=False)
+    ret = validate(data_loader, decision_maker, (actor,), wp=wp, 
+                   prob_range=prob_range, max_step=max_step, normalize=True)
     return ret
 
-def run_random(data_loader, name, save_dir, max_step=1000):
+def run_random(data_loader, name, save_dir, wp, prob_range, max_step=1000):
     save_dir = os.path.join(save_dir, name)
-    return validate(data_loader, random_decision_maker, normalize=False, max_step=max_step)
+    return validate(data_loader, random_decision_maker, wp=wp, 
+                    prob_range=prob_range, max_step=max_step, normalize=False)
+
+
+def run_imna(data_loader, name, save_dir, wp, prob_range, max_step=1000):
+    return validate(data_loader, imna.imna_decision_maker, wp=wp, 
+                    prob_range=prob_range, max_step=max_step, normalize=False)
 
 
 solvers = {
@@ -125,10 +132,11 @@ solvers = {
     "random": run_random,
 }
 
-def smooth(y, box_pts):
-    box = np.ones(box_pts)/box_pts
-    y_smooth = np.convolve(y, box, mode='same')
-    return y_smooth
+label_map = {
+    "model002": "model002",
+    "imna": "imna",
+    "random": "random",
+}
 
 def run_ept_3(seed=123, save_dir='results', rerun=[]):
     used_solvers = ec.ept3.solvers
@@ -147,38 +155,59 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
 
         for prob in np.arange(min_prob, max_prob, step):
             wp = WrsnParameters()
-            wp.k_bit = ec.ept3.k_bit * prob
-            print(wp.k_bit)
+            prob_range = (prob, prob + step)
+
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
-                        print(f"running on {prob, name}")
-                        ret = solver(data_loader, name, save_dir, max_episode_step)
-                        res[name].append((prob, ret))
+                        print(f"running on {prob_range, name}")
+                        for _ in range(ec.ept3.repeat):
+                            ret = solver(data_loader, name, save_dir, wp, prob_range, max_episode_step)
+                            res[name].append(ret)
             
         for key, value in res.items():                
             pdump(value, f'{key}.pickle', save_dir)
 
-    def plot(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
-                  yscale=None, smooth_k=1):
-        plt.style.use('seaborn-darkgrid')
-        
-        fig, ax = plt.subplots()
-        for name, (mean, std) in data.items():
-            ax.plot(x, smooth(mean, smooth_k), label=name)
-            if plot_std:
-                ax.fill_between(x, 
-                                smooth(np.clip(mean - std, 0.0, np.inf), smooth_k), 
-                                smooth(np.clip(mean + std, 0.0, np.inf), smooth_k), 
-                                alpha=0.2)
+    def plot(data, save_dir):
+        # plt.style.use('seaborn-white')
 
+        fig, ax = plt.subplots()
+        lifetime_values = []
+        for e in data.values():
+            lifetime_values.extend(e[1])
+        lifetime_values = np.array(lifetime_values)
+        finite = np.isfinite(lifetime_values)
+        max_value = np.max(lifetime_values[finite])
+
+        max_scale = 1.2
+        step = 0.03
+        margin = 0.05
+        i = 0
+        marker = itertools.cycle(['x', '*', 'v', '^', "s", "v", "^"])
+        for name, (probs, lifetimes) in data.items():
+            lifetimes = np.array(lifetimes)
+            inf_idx = np.isinf(lifetimes)
+            lifetimes[inf_idx] = max_value * (max_scale - i *step)
+            ax.scatter(probs, lifetimes, label=label_map[name], alpha=0.6, s=10, 
+                        marker=next(marker), plotnonfinite=True, zorder=10-i)
+            i += 1
+
+        ax.axhline(y=max_value * (max_scale-(i-1)*step-margin), color="black", linestyle=":", linewidth=1)
         ax.legend(frameon=True)
-        if yscale is not None:
-            plt.yscale(yscale)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        # ax.set_title(title)
-        plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
+        plt.yscale('log')
+       
+
+        ax.set_ylim(top=max_value*(max_scale + margin))
+
+        ax.set_xlabel('packet generation prob.')
+        ax.set_ylabel('lifetimes')
+        plt.text(0.24, .96, 'INF',
+                transform=ax.get_xaxis_transform(),
+                horizontalalignment='center',
+                weight=12, color='black',
+                fontdict={'fontfamily': 'monospace'})
+        plt.savefig(os.path.join(save_dir, 'ept3.png'), dpi=400)
+        plt.show()
         plt.close('all')
 
     save_dir = os.path.join(save_dir, f'ept_{3}')
@@ -190,20 +219,20 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
     for name in used_solvers:
         data[name] = pload(f'{name}.pickle', save_dir)
 
-    lifetimes = dict()
+    normalized_data = dict()
     idx = None
     for name, model_data in data.items():
         idx = []
         inf_lifetimes = []
+        x = []
+        for e in model_data:
+            x.extend(e['inf_lifetimes'])
+        for prob, lifetime in x:
+            idx.append(prob)
+            inf_lifetimes.append(lifetime)
+        normalized_data[name] = (idx, inf_lifetimes)   
 
-        for _id, ret in model_data:
-            idx.append(_id)
-            inf_lifetimes.append(ret['inf_lifetimes'])
-        lifetimes[name] = (np.array(inf_lifetimes), np.array(lifetime_std))
-
-    x = np.array(idx)
-    xlabel = 'packet generation prob.'
-    plot(data)
+    plot(normalized_data, save_dir)
 
 
 if __name__ == '__main__':
@@ -221,7 +250,7 @@ if __name__ == '__main__':
         save_dir = os.path.join(save_dir, basename)
 
     WrsnParameters.from_file(ec.wrsn_config)
-    DrlParameters.from_file(ec.drl_config)
+    dp.from_file(ec.drl_config)
 
     torch.manual_seed(args.seed-1)
     np.random.seed(args.seed-2)

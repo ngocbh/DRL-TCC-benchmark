@@ -37,8 +37,9 @@ class Ept3(Config):
     test_size = 10
     k_bit = 20000000
     step = 0.1
-    min_prob = 0.1
+    min_prob = 0.3
     max_prob = 1
+    repeat = 2
     
 
 
