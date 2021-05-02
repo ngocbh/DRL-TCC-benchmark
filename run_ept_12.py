@@ -51,6 +51,22 @@ def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
     # ax.set_title(title)
     plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
     plt.close('all')
+
+def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
+    plt.style.use('seaborn-darkgrid')
+    
+    fig, ax = plt.subplots()
+    i = 0
+    for name, model_data in data.items():
+        ax.plot(x, model_data, label=name, zorder=10-i)
+        i += 1
+
+    ax.legend(frameon=True)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    # ax.set_title(title)
+    plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
+    plt.close('all')
     
 
 def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
@@ -117,6 +133,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
     lifetimes = dict()
     node_failures = dict()
     aggregated_ecr = dict()
+    inf_data = dict()
     idx = None
     for name, model_data in data.items():
         idx = []
@@ -126,6 +143,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         node_failures_std = []
         aggregated_ecr_mean = []
         aggregated_ecr_std = []
+        inf_model_data = []
 
         for num_sensors, ret in model_data:
             idx.append(num_sensors)
@@ -135,9 +153,15 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
             node_failures_std.append(ret['node_failures_std'])
             aggregated_ecr_mean.append(ret['aggregated_ecr_mean'])
             aggregated_ecr_std.append(ret['aggregated_ecr_std'])
+
+            inf_lifetimes = np.array(ret['inf_lifetimes'])
+            num_inf_tests = np.sum(np.isinf(inf_lifetimes))
+            inf_model_data.append(num_inf_tests)
+
         lifetimes[name] = (np.array(lifetime_mean), np.array(lifetime_std))
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))
         aggregated_ecr[name] = (np.array(aggregated_ecr_mean), np.array(aggregated_ecr_std))
+        inf_data[name] = inf_model_data
         
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
@@ -146,6 +170,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                   save_dir, yscale='log', smooth_k=4)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
+    plot_inf_data(x, inf_data, xlabel, 'num. instances', 'inf_data', save_dir)
 
 
 if __name__ == '__main__':
