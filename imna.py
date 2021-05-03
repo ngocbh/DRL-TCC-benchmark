@@ -77,8 +77,8 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
     else:
         return 0, 1.0
 
-def run_imna(data_loader, name, save_dir, max_step=1000):
-    return validate(data_loader, imna_decision_maker, normalize=False, max_step=max_step)
+def run_imna(data_loader, name, save_dir, wp, max_step=1000):
+    return validate(data_loader, imna_decision_maker, wp=wp, normalize=False, max_step=max_step)
 
 if __name__ == '__main__':
     np.set_printoptions(suppress=True)

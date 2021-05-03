@@ -3,7 +3,7 @@ sys.path.insert(0, './model002')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
-from utils import WrsnParameters as wp, DrlParameters as dp
+from utils import WrsnParameters, DrlParameters as dp
 from model import MCActor
 from environment import WRSNEnv
 from ept_config import EptConfig as ec
@@ -76,6 +76,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         num_targets = ec.ept1.num_targets
         min_num_sensors = ec.ept1.min_num_sensors
         max_num_sensors = ec.ept1.max_num_sensors
+        wp = WrsnParameters()
         wp.k_bit = ec.ept1.k_bit
         max_episode_step = ec.max_episode_step
         
@@ -87,7 +88,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
                         print(f"running on {num_sensors, name}")
-                        ret = solver(data_loader, name, save_dir, max_episode_step)
+                        ret = solver(data_loader, name, save_dir, wp, max_episode_step)
                         res[name].append((num_sensors, ret))
 
         for key, value in res.items():                
@@ -106,13 +107,14 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         data_loader = DataLoader(test_data, 1, False, num_workers=0)
 
         for prob in np.arange(min_prob, max_prob, step):
+            wp = WrsnParameters()
             wp.k_bit = ec.ept2.k_bit * prob
 
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
                         print(f"running on {prob, name}")
-                        ret = solver(data_loader, name, save_dir, max_episode_step)
+                        ret = solver(data_loader, name, save_dir, wp, max_episode_step)
                         res[name].append((prob, ret))
             
         for key, value in res.items():                
@@ -189,7 +191,7 @@ if __name__ == '__main__':
         basename = os.path.splitext(os.path.basename(args.config))[0]
         save_dir = os.path.join(save_dir, basename)
 
-    wp.from_file(ec.wrsn_config)
+    WrsnParameters.from_file(ec.wrsn_config)
     dp.from_file(ec.drl_config)
 
     torch.manual_seed(args.seed-1)
