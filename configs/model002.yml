@@ -34,7 +34,7 @@ ec:
     __doc__: null
     k_bit: 20000000
     max_prob: 1
-    min_prob: 0.1
+    min_prob: 0.3
     num_sensors: 20
     num_targets: 10
     solvers:
