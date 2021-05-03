@@ -3,7 +3,7 @@ ec:
   __doc__: null
   checkpoint: model002/checkpoints/mc_20_10_0/21
   drl_config: model002/configs/dev.yml
-  max_episode_step: 100
+  max_episode_step: 2000
   ept1:
     __dictpath__: ec.ept1
     __doc__: null

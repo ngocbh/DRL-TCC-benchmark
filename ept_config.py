@@ -39,7 +39,7 @@ class Ept3(Config):
     step = 0.1
     min_prob = 0.3
     max_prob = 1
-    repeat = 2
+    repeat = 1
     
 
 

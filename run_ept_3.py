@@ -207,7 +207,6 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
                 weight=12, color='black',
                 fontdict={'fontfamily': 'monospace'})
         plt.savefig(os.path.join(save_dir, 'ept3.png'), dpi=400)
-        plt.show()
         plt.close('all')
 
     save_dir = os.path.join(save_dir, f'ept_{3}')
