@@ -14,6 +14,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
+import joblib
+import time
 
 import model002
 import imna
@@ -76,6 +78,15 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
 def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
     used_solvers = ec.ept2.solvers if ept == 2 else ec.ept1.solvers
 
+    def solver_wrapper(solver, jobs_desc, *args):
+        print("running", jobs_desc)
+        start_time = time.time()
+        ret = solver(*args)
+        print("done {}, take: {}, mean_lifetime: {}".format(jobs_desc, 
+                                         time.time() - start_time,
+                                         ret["lifetime_mean"]))
+        return ret
+
     def run_ept_1(save_dir):
         num_targets = ec.ept1.num_targets
         min_num_sensors = ec.ept1.min_num_sensors
@@ -85,15 +96,22 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         max_episode_step = ec.max_episode_step
         
         res = defaultdict(list)
+        jobs_args = []
+        jobs_desc = []
         for num_sensors in range(min_num_sensors, max_num_sensors):
             test_data = WRSNDataset(num_sensors, num_targets, ec.ept1.test_size, seed)
             data_loader = DataLoader(test_data, 1, False, num_workers=0)
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
-                        print(f"running on {num_sensors, name}")
-                        ret = solver(data_loader, name, save_dir, wp, max_episode_step)
-                        res[name].append((num_sensors, ret))
+                        jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
+                        jobs_desc.append((name, num_sensors))
+
+        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+            solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
+
+        for i, ret in enumerate(rets):
+            res[jobs_desc[i][0]].append((jobs_desc[i][1], ret))
 
         for key, value in res.items():                
             pdump(value, f'{key}.pickle', save_dir)
@@ -106,6 +124,9 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         step = ec.ept2.step
         max_episode_step = ec.max_episode_step
 
+        jobs_args = []
+        jobs_desc = []
+
         res = defaultdict(list)
         test_data = WRSNDataset(num_sensors, num_targets, ec.ept2.test_size, seed)
         data_loader = DataLoader(test_data, 1, False, num_workers=0)
@@ -117,10 +138,15 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
-                        print(f"running on {prob, name}")
-                        ret = solver(data_loader, name, save_dir, wp, max_episode_step)
-                        res[name].append((prob, ret))
-            
+                        jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
+                        jobs_desc.append((name, prob))
+
+        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+            solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
+
+        for i, ret in enumerate(rets):
+            res[jobs_desc[i][0]].append((jobs_desc[i][1], ret))
+
         for key, value in res.items():                
             pdump(value, f'{key}.pickle', save_dir)
 
@@ -150,7 +176,6 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         aggregated_ecr_mean = []
         aggregated_ecr_std = []
         inf_model_data = []
-
         for num_sensors, ret in model_data:
             idx.append(num_sensors)
             lifetime_mean.append(ret['lifetime_mean'])

@@ -14,6 +14,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import os
+import joblib
+import time
 from main import decision_maker
 from random_strategy import random_decision_maker
 from imna import imna_decision_maker
@@ -31,6 +33,8 @@ def validate(data_loader, decision_maker, args=None,
              render=False, verbose=False, normalize=True,
              on_validation_begin=None, on_validation_end=None, 
              on_episode_begin=None, on_episode_end=None):
+    start_time = time.time()
+
     if on_validation_begin is not None:
         on_validation_begin(*args)
 
@@ -39,7 +43,7 @@ def validate(data_loader, decision_maker, args=None,
     k_bit = wp.k_bit
 
     for idx, data in enumerate(data_loader):
-        if verbose: print("Test %d" % idx)
+        print("Test %d" % idx)
 
         sensors, targets = data
         package_generation_prob = np.random.uniform(*prob_range)
@@ -112,6 +116,7 @@ def validate(data_loader, decision_maker, args=None,
     if on_validation_end is not None:
         on_validation_end(*args)
 
+    print("Validation time : {}".format(time.time() - start_time))
     return ret
 
 def run_model002(data_loader, name, save_dir, wp, prob_range, max_step=1000):
@@ -148,13 +153,14 @@ def run_gsa(data_loader, name, save_dir, wp, prob_range, max_step=1000):
     def gsa_reset(gsa):
         gsa.reset()
 
-    gsa = GSA()
-    return validate(data_loader, gsa.gsa_decision_maker, (gsa,), wp=wp, prob_range=prob_range, 
+    gsa_ = gsa.GSA()
+    return validate(data_loader, gsa.gsa_decision_maker, (gsa_,), wp=wp, prob_range=prob_range, 
                     normalize=False, max_step=max_step, on_episode_begin=gsa_reset)
 
 
 solvers = {
     "model002": run_model002,
+    "gsa": run_gsa,
     "imna": run_imna,
     "njnp": run_njnp,
     "random": run_random,
@@ -162,13 +168,22 @@ solvers = {
 
 label_map = {
     "model002": "model002",
+    "gsa": "gsa",
     "imna": "imna",
-    "njnp", "njnp"
+    "njnp": "njnp",
     "random": "random",
 }
 
 def run_ept_3(seed=123, save_dir='results', rerun=[]):
     used_solvers = ec.ept3.solvers
+
+    def solver_wrapper(solver, jobs_desc, *args):
+        print("running", jobs_desc)
+        start_time = time.time()
+        ret = solver(*args)
+        print("done {}, take: {}".format(jobs_desc, 
+                                         time.time() - start_time))
+        return ret
 
     def run(save_dir):
         num_targets = ec.ept3.num_targets
@@ -182,6 +197,9 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         test_data = WRSNDataset(num_sensors, num_targets, ec.ept3.test_size, seed)
         data_loader = DataLoader(test_data, 1, False, num_workers=0)
 
+        jobs_args = []
+        jobs_desc = []
+
         for prob in np.arange(min_prob, max_prob, step):
             wp = WrsnParameters()
             prob_range = (prob, prob + step)
@@ -189,10 +207,14 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
-                        print(f"running on {prob_range, name}")
-                        for _ in range(ec.ept3.repeat):
-                            ret = solver(data_loader, name, save_dir, wp, prob_range, max_episode_step)
-                            res[name].append(ret)
+                        jobs_args.append((data_loader, name, save_dir, wp, prob_range, max_episode_step))
+                        jobs_desc.append((name, prob_range))
+
+        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+            solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
+
+        for i, ret in enumerate(rets):
+            res[jobs_desc[i][0]].append((jobs_desc[i][1], ret))
             
         for key, value in res.items():                
             pdump(value, f'{key}.pickle', save_dir)
