@@ -9,7 +9,7 @@ class Ept1(Config):
     __dictpath__ = 'ec.ept1'
 
     # ept 1 settings
-    solvers = ['model002', 'imna', 'random']
+    solvers = ['model002', 'gsa', 'imna', 'njnp', 'random']
     num_targets = 10
     test_size = 10
     min_num_sensors = 20
@@ -19,7 +19,7 @@ class Ept1(Config):
 class Ept2(Config):
     __dictpath__ = 'ec.ept2'
 
-    solvers = ['model002', 'imna', 'random']
+    solvers = ['model002', 'gsa', 'imna', 'njnp', 'random']
     num_targets = 10
     num_sensors = 20
     test_size = 10
@@ -31,7 +31,7 @@ class Ept2(Config):
 class Ept3(Config):
     __dictpath__ = 'ec.ept3'
 
-    solvers = ['model002', 'imna', 'random']
+    solvers = ['model002', 'gsa', 'imna', 'njnp', 'random']
     num_targets = 10
     num_sensors = 20
     test_size = 10

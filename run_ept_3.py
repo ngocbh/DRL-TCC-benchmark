@@ -20,13 +20,19 @@ from imna import imna_decision_maker
 from ept_config import EptConfig
 import model002
 import imna
+import njnp
 import itertools
+import gsa
 
 
 
 def validate(data_loader, decision_maker, args=None, 
              wp=WrsnParameters, prob_range=(0.3, 0.4), max_step=None,
-             render=False, verbose=False, normalize=True):
+             render=False, verbose=False, normalize=True,
+             on_validation_begin=None, on_validation_end=None, 
+             on_episode_begin=None, on_episode_end=None):
+    if on_validation_begin is not None:
+        on_validation_begin(*args)
 
     rewards = []
     inf_lifetimes = []
@@ -52,6 +58,9 @@ def validate(data_loader, decision_maker, args=None,
         rewards = []
 
         mask = torch.ones(env.action_space.n).to(device)
+
+        if on_episode_begin is not None:
+            on_episode_begin(*args)
 
         max_step = max_step or dp.max_step
         for step in range(max_step):
@@ -90,6 +99,8 @@ def validate(data_loader, decision_maker, args=None,
             if render:
                 time.sleep(0.5)
                 # pass
+        if on_episode_end is not None:
+            on_episode_end(*args)
 
         lifetime = env.get_network_lifetime() if done else np.inf
         inf_lifetimes.append((package_generation_prob, lifetime))
@@ -97,6 +108,10 @@ def validate(data_loader, decision_maker, args=None,
     wp.k_bit = k_bit
     ret = {}
     ret['inf_lifetimes'] = inf_lifetimes
+    
+    if on_validation_end is not None:
+        on_validation_end(*args)
+
     return ret
 
 def run_model002(data_loader, name, save_dir, wp, prob_range, max_step=1000):
@@ -125,16 +140,30 @@ def run_imna(data_loader, name, save_dir, wp, prob_range, max_step=1000):
     return validate(data_loader, imna.imna_decision_maker, wp=wp, 
                     prob_range=prob_range, max_step=max_step, normalize=False)
 
+def run_njnp(data_loader, name, save_dir, wp, prob_range, max_step=1000):
+    return validate(data_loader, njnp.njnp_decision_maker, wp=wp, 
+                    prob_range=prob_range, max_step=max_step, normalize=False)
+
+def run_gsa(data_loader, name, save_dir, wp, prob_range, max_step=1000):
+    def gsa_reset(gsa):
+        gsa.reset()
+
+    gsa = GSA()
+    return validate(data_loader, gsa.gsa_decision_maker, (gsa,), wp=wp, prob_range=prob_range, 
+                    normalize=False, max_step=max_step, on_episode_begin=gsa_reset)
+
 
 solvers = {
     "model002": run_model002,
     "imna": run_imna,
+    "njnp": run_njnp,
     "random": run_random,
 }
 
 label_map = {
     "model002": "model002",
     "imna": "imna",
+    "njnp", "njnp"
     "random": "random",
 }
 

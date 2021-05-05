@@ -17,10 +17,14 @@ import os
 
 import model002
 import imna
+import njnp
+import gsa
 
 solvers = {
     "model002": model002.run,
+    "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
+    "njnp": njnp.run_njnp,
     "random": model002.run_random,
 }
 
@@ -169,6 +173,8 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
         
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', 
+                  save_dir, yscale=None, smooth_k=4)
+    plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime_log', 
                   save_dir, yscale='log', smooth_k=4)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)

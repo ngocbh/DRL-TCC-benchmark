@@ -3,7 +3,7 @@ ec:
   __doc__: null
   checkpoint: model002/checkpoints/mc_20_10_0/21
   drl_config: model002/configs/dev.yml
-  max_episode_step: 100
+  max_episode_step: 1000
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
@@ -13,7 +13,9 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - gsa
     - imna
+    - njnp
     - random
     test_size: 10
   ept2:
@@ -21,12 +23,14 @@ ec:
     __doc__: null
     k_bit: 20000000
     max_prob: 1
-    min_prob: 0.1
+    min_prob: 0.3
     num_sensors: 20
     num_targets: 10
     solvers:
     - model002
+    - gsa
     - imna
+    - njnp
     - random
     step: 0.1
     test_size: 10
@@ -40,7 +44,9 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - gsa
     - imna
+    - njnp
     - random
     step: 0.1
     test_size: 10
