@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 sys.path.insert(0, './model002')
+import utils
 from utils import device, pdump, pload
 from utils import WRSNDataset
 from utils import WrsnParameters as wp, DrlParameters as dp
@@ -14,6 +15,7 @@ import os
 import torch
 import random_strategy
 import main as model002
+
 
 def run_model003(data_loader, name, save_dir, wp, max_step=1000):
     actor = MCActor003(dp.MC_INPUT_SIZE,

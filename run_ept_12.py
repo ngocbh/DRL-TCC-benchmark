@@ -108,7 +108,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, num_sensors))
 
-        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=8)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
@@ -142,7 +142,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, prob))
 
-        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=8)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
