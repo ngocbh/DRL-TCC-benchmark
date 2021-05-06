@@ -21,9 +21,11 @@ import model002
 import imna
 import njnp
 import gsa
+import model001
 
 solvers = {
     "model002": model002.run,
+    "model001": model001.run_model001,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
@@ -37,7 +39,6 @@ def smooth(y, box_pts):
 
 def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
                   yscale=None, smooth_k=1):
-
     plt.style.use('seaborn-darkgrid')
     
     fig, ax = plt.subplots()
@@ -94,7 +95,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         wp = WrsnParameters()
         wp.k_bit = ec.ept1.k_bit
         max_episode_step = ec.max_episode_step
-        
+
         res = defaultdict(list)
         jobs_args = []
         jobs_desc = []
@@ -176,6 +177,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         aggregated_ecr_mean = []
         aggregated_ecr_std = []
         inf_model_data = []
+
         for num_sensors, ret in model_data:
             idx.append(num_sensors)
             lifetime_mean.append(ret['lifetime_mean'])
@@ -184,7 +186,6 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
             node_failures_std.append(ret['node_failures_std'])
             aggregated_ecr_mean.append(ret['aggregated_ecr_mean'])
             aggregated_ecr_std.append(ret['aggregated_ecr_std'])
-
             inf_lifetimes = np.array(ret['inf_lifetimes'])
             num_inf_tests = np.sum(np.isinf(inf_lifetimes))
             inf_model_data.append(num_inf_tests)
@@ -193,7 +194,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))
         aggregated_ecr[name] = (np.array(aggregated_ecr_mean), np.array(aggregated_ecr_std))
         inf_data[name] = inf_model_data
-        
+
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
         

@@ -27,7 +27,6 @@ ec:
     solvers:
     - model002
     - imna
-    - njnp
     - random
     step: 0.1
     test_size: 1000

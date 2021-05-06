@@ -13,6 +13,7 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - model001
     - gsa
     - imna
     - njnp
@@ -28,9 +29,7 @@ ec:
     num_targets: 10
     solvers:
     - model002
-    - gsa
     - imna
-    - njnp
     - random
     step: 0.1
     test_size: 10

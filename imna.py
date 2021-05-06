@@ -87,7 +87,7 @@ if __name__ == '__main__':
     torch.manual_seed(seed-1)
     np.random.seed(seed-2)
     dataset = WRSNDataset(20, 10, 1, 1)
-    wp.k_bit = 6000000
+    wp.k_bit = 20000000
     data_loader = DataLoader(dataset, 1, False, num_workers=0)
     validate(data_loader, imna_decision_maker, render=False, verbose=True, normalize=False)
     # validate(data_loader, random_decision_maker, render=False, verbose=True, normalize=False)
