@@ -6,3 +6,7 @@
 	path = model002
 	url = https://github.com/ngocjr7/odmc-wrsn
 	branch = model002
+[submodule "model003"]
+	path = model003
+	url = http://github.com/ngocjr7/odmc-wrsn
+	branch = model003

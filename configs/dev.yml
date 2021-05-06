@@ -13,7 +13,7 @@ ec:
     num_targets: 10
     solvers:
     - model002
-    - model001
+    - model003
     - gsa
     - imna
     - njnp
