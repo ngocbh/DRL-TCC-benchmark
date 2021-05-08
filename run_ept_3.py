@@ -43,11 +43,12 @@ def validate(data_loader, decision_maker, args=None,
     k_bit = wp.k_bit
 
     for idx, data in enumerate(data_loader):
-        print("Test %d" % idx)
-
-        sensors, targets = data
         package_generation_prob = np.random.uniform(*prob_range)
         wp.k_bit = k_bit * package_generation_prob
+        # print("Test {}, {}, {}".format(idx, wp.k_bit, decision_maker.__name__))
+
+        sensors, targets = data
+        
         env = WRSNEnv(sensors=sensors.squeeze(), 
                       targets=targets.squeeze(), 
                       wp=wp,
@@ -65,7 +66,8 @@ def validate(data_loader, decision_maker, args=None,
 
         if on_episode_begin is not None:
             on_episode_begin(*args)
-
+        # verbose = True
+        # render=True
         max_step = max_step or dp.max_step
         for step in range(max_step):
             if render:
@@ -87,6 +89,8 @@ def validate(data_loader, decision_maker, args=None,
             if verbose: 
                 print("Step %d: Go to %d (prob: %2.4f) => reward (%2.4f, %2.4f)\n" % 
                       (step, action, prob, reward[0], reward[1]))
+                print("Aggregated ecr %2.4f, node failures %2.4f\n" % 
+                       (env.net.aggregated_ecr, env.net.node_failures))
                 print("Current network lifetime: %2.4f, mc_battery: %2.4f \n\n" % 
                        (env.net.network_lifetime, env.mc.cur_energy))
 
@@ -116,7 +120,7 @@ def validate(data_loader, decision_maker, args=None,
     if on_validation_end is not None:
         on_validation_end(*args)
 
-    print("Validation time : {}".format(time.time() - start_time))
+    # print("Validation time : {}".format(time.time() - start_time))
     return ret
 
 def run_model002(data_loader, name, save_dir, wp, prob_range, max_step=1000):
@@ -202,6 +206,7 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
 
         for prob in np.arange(min_prob, max_prob, step):
             wp = WrsnParameters()
+            wp.k_bit = ec.ept3.k_bit
             prob_range = (prob, prob + step)
 
             for name, solver in solvers.items():
@@ -210,7 +215,7 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
                         jobs_args.append((data_loader, name, save_dir, wp, prob_range, max_episode_step))
                         jobs_desc.append((name, prob_range))
 
-        rets = joblib.Parallel(n_jobs=-1)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=8)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
@@ -230,9 +235,9 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         finite = np.isfinite(lifetime_values)
         max_value = np.max(lifetime_values[finite])
 
-        max_scale = 1.2
-        step = 0.03
-        margin = 0.05
+        max_scale = 1.5
+        step = 0.1
+        margin = 0.1
         i = 0
         marker = itertools.cycle(['x', '*', 'v', '^', "s", "v", "^"])
         for name, (probs, lifetimes) in data.items():
@@ -275,12 +280,13 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         idx = []
         inf_lifetimes = []
         x = []
-        for e in model_data:
+        for ft, e in model_data:
             x.extend(e['inf_lifetimes'])
         for prob, lifetime in x:
             idx.append(prob)
             inf_lifetimes.append(lifetime)
-        normalized_data[name] = (idx, inf_lifetimes)   
+        normalized_data[name] = (idx, inf_lifetimes)
+        # print(name, list(zip(idx, inf_lifetimes))  ) 
 
     plot(normalized_data, save_dir)
 

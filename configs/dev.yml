@@ -29,6 +29,7 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - njnp
     - imna
     - random
     step: 0.1
@@ -47,5 +48,5 @@ ec:
     - njnp
     - random
     step: 0.1
-    test_size: 10
+    test_size: 30
   wrsn_config: model002/configs/dev.yml

@@ -186,7 +186,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
             aggregated_ecr_std.append(ret['aggregated_ecr_std'])
             inf_lifetimes = np.array(ret['inf_lifetimes'])
             num_inf_tests = np.sum(np.isinf(inf_lifetimes))
-            inf_model_data.append(num_inf_tests)
+            inf_model_data.append(num_inf_tests/len(inf_lifetimes))
 
         lifetimes[name] = (np.array(lifetime_mean), np.array(lifetime_std))
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))
