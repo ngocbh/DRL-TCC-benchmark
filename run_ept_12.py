@@ -21,11 +21,9 @@ import model002
 import imna
 import njnp
 import gsa
-import model003
 
 solvers = {
     "model002": model002.run,
-    "model003": model003.run_model003,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
