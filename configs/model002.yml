@@ -41,8 +41,8 @@ ec:
     num_targets: 10
     solvers:
     - model002
-    - imna
     - njnp
+    - imna
     - random
     step: 0.1
     test_size: 1000

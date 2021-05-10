@@ -14,6 +14,7 @@ ec:
     solvers:
     - model002
     - model003
+    - model004
     - gsa
     - imna
     - njnp
@@ -29,6 +30,7 @@ ec:
     num_targets: 10
     solvers:
     - model002
+    - model004
     - njnp
     - imna
     - random

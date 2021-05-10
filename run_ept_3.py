@@ -235,16 +235,17 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         finite = np.isfinite(lifetime_values)
         max_value = np.max(lifetime_values[finite])
 
-        max_scale = 1.5
-        step = 0.1
-        margin = 0.1
+        max_scale = 1.8
+        step = 0.22
+        margin = 0.2
         i = 0
         marker = itertools.cycle(['x', '*', 'v', '^', "s", "v", "^"])
         for name, (probs, lifetimes) in data.items():
+            print(name)
             lifetimes = np.array(lifetimes)
             inf_idx = np.isinf(lifetimes)
             lifetimes[inf_idx] = max_value * (max_scale - i *step)
-            ax.scatter(probs, lifetimes, label=label_map[name], alpha=0.6, s=10, 
+            ax.scatter(probs, lifetimes, label=label_map[name], alpha=0.5, s=10, 
                         marker=next(marker), plotnonfinite=True, zorder=10-i)
             i += 1
 
@@ -281,7 +282,7 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         inf_lifetimes = []
         x = []
         for ft, e in model_data:
-            x.extend(e['inf_lifetimes'])
+            x.extend(e['inf_lifetimes'][:300])
         for prob, lifetime in x:
             idx.append(prob)
             inf_lifetimes.append(lifetime)

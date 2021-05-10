@@ -17,6 +17,7 @@ import os
 import joblib
 import time
 
+import model004
 import model002
 import imna
 import njnp
@@ -24,6 +25,7 @@ import gsa
 
 solvers = {
     "model002": model002.run,
+    "model004": model004.run_model004,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
