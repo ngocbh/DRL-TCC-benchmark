@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
 
-sys.path.append('./model002')
+sys.path.append('./model004')
 from utils import device, pdump, pload
 from utils import WRSNDataset
 from utils import WrsnParameters as wp, DrlParameters as dp

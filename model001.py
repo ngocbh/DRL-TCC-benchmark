@@ -4,7 +4,7 @@ from model import MCActor as MCActor001
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import numpy as np
-sys.path.insert(0, './model002')
+sys.path.insert(0, './model004')
 from utils import device, pdump, pload
 from utils import WRSNDataset
 from utils import WrsnParameters as wp, DrlParameters as dp

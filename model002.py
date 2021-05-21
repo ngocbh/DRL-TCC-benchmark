@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model002')
+sys.path.insert(0, './model004')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
@@ -25,6 +25,7 @@ def run(data_loader, name, save_dir, wp, max_step=1000):
 
     ret = model002.validate(data_loader, decision_maker, (actor,), wp=wp, max_step=max_step,
                             render=False, verbose=False)
+
     return ret
 
 def run_random(data_loader, name, save_dir, wp, max_step=1000):

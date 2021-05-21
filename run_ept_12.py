@@ -1,11 +1,12 @@
 import sys
-sys.path.insert(0, './model002')
+sys.path.insert(0, './model004')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
 from utils import WrsnParameters, DrlParameters as dp
 from model import MCActor
 from environment import WRSNEnv
+import utils
 from ept_config import EptConfig as ec
 from torch.utils.data import DataLoader
 from collections import defaultdict
@@ -15,6 +16,7 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 import joblib
+import copy
 import time
 
 import model004
@@ -76,8 +78,9 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
     plt.close('all')
     
 
-def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
+def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnParameters):
     used_solvers = ec.ept2.solvers if ept == 2 else ec.ept1.solvers
+    print(wp_default)
 
     def solver_wrapper(solver, jobs_desc, *args):
         print("running", jobs_desc)
@@ -92,8 +95,9 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         num_targets = ec.ept1.num_targets
         min_num_sensors = ec.ept1.min_num_sensors
         max_num_sensors = ec.ept1.max_num_sensors
-        wp = WrsnParameters()
+        wp = copy.deepcopy(wp_default)
         wp.k_bit = ec.ept1.k_bit
+        print(wp.E_s)
         max_episode_step = ec.max_episode_step
 
         res = defaultdict(list)
@@ -105,6 +109,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
+                        print(wp.E_s)
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, num_sensors))
 
@@ -133,7 +138,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[]):
         data_loader = DataLoader(test_data, 1, False, num_workers=0)
 
         for prob in np.arange(min_prob, max_prob, step):
-            wp = WrsnParameters()
+            wp = copy.deepcopy(wp_default)
             wp.k_bit = ec.ept2.k_bit * prob
 
             for name, solver in solvers.items():
@@ -224,6 +229,8 @@ if __name__ == '__main__':
         save_dir = os.path.join(save_dir, basename)
 
     WrsnParameters.from_file(ec.wrsn_config)
+    wp = WrsnParameters(WrsnParameters.to_dict())
+
     dp.from_file(ec.drl_config)
 
     torch.manual_seed(args.seed-1)
@@ -238,5 +245,5 @@ if __name__ == '__main__':
     
     for ept in set(args.epts):
         if ept == 1 or ept == 2:
-            run_ept_1_2(ept, args.seed, save_dir=save_dir, rerun=rerun)
+            run_ept_1_2(ept, args.seed, save_dir=save_dir, rerun=rerun, wp_default=wp)
 
