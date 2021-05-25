@@ -15,9 +15,6 @@ import random_strategy
 import main as model002
 import utils
 
-print(utils.__file__)
-print(model002.__file__)
-print(wp.p_request_threshold)
 
 def run_model003(data_loader, name, save_dir, wp, max_step=1000):
     actor = MCActor003(dp.MC_INPUT_SIZE,

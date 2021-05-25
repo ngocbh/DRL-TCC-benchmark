@@ -80,7 +80,6 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
 
 def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnParameters):
     used_solvers = ec.ept2.solvers if ept == 2 else ec.ept1.solvers
-    print(wp_default)
 
     def solver_wrapper(solver, jobs_desc, *args):
         print("running", jobs_desc)
@@ -97,7 +96,6 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         max_num_sensors = ec.ept1.max_num_sensors
         wp = copy.deepcopy(wp_default)
         wp.k_bit = ec.ept1.k_bit
-        print(wp.E_s)
         max_episode_step = ec.max_episode_step
 
         res = defaultdict(list)
@@ -109,11 +107,10 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
             for name, solver in solvers.items():
                 if name in used_solvers:
                     if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
-                        print(wp.E_s)
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, num_sensors))
 
-        rets = joblib.Parallel(n_jobs=8)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=4)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
@@ -147,7 +144,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, prob))
 
-        rets = joblib.Parallel(n_jobs=8)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=4)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
