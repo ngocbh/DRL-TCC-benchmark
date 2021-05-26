@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model004')
+sys.path.insert(0, './model005')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
@@ -19,7 +19,7 @@ import joblib
 import copy
 import time
 
-import model004
+import model005
 import model002
 import imna
 import njnp
@@ -27,11 +27,11 @@ import gsa
 
 solvers = {
     "model002": model002.run,
-    "model004": model004.run_model004,
+    "model005": model005.run_model005,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
-    "random": model002.run_random,
+    "random": model005.run_random,
 }
 
 def smooth(y, box_pts):
@@ -85,9 +85,16 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         print("running", jobs_desc)
         start_time = time.time()
         ret = solver(*args)
-        print("done {}, take: {}, mean_lifetime: {}".format(jobs_desc, 
+        print("----> done {}, take: {}, mean_lifetime: {}".format(
+                                         jobs_desc,
                                          time.time() - start_time,
                                          ret["lifetime_mean"]))
+        print("    > mean_step: {}, mean_rewards: {}, k_bit: {}, E_s: {}, E_mc: {}".format(
+                                         ret['step_mean'],
+                                         ret['reward_mean'],
+                                         ret['k_bit'],
+                                         ret['E_s'],
+                                         ret['E_mc']))
         return ret
 
     def run_ept_1(save_dir):
@@ -211,7 +218,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', '-s', default=123, type=int)
+    parser.add_argument('--seed', '-s', default=124, type=int)
     parser.add_argument('--ept', '-e', dest='epts', 
                         action='append', required=True, type=int)
     parser.add_argument('--config', '-cf', default=None, type=str)

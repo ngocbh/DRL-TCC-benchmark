@@ -185,8 +185,16 @@ def run_ept_3(seed=123, save_dir='results', rerun=[]):
         print("running", jobs_desc)
         start_time = time.time()
         ret = solver(*args)
-        print("done {}, take: {}".format(jobs_desc, 
-                                         time.time() - start_time))
+        print("----> done {}, take: {}, mean_lifetime: {}".format(
+                                         jobs_desc,
+                                         time.time() - start_time,
+                                         ret["lifetime_mean"]))
+        print("----> mean_step: {}, mean_rewards: {}, k_bit: {}, E_s: {}, E_mc: {}".format(
+                                         ret['step_mean'],
+                                         ret['reward_mean'],
+                                         ret['k_bit'],
+                                         ret['E_s'],
+                                         ret['E_mc']))
         return ret
 
     def run(save_dir):
