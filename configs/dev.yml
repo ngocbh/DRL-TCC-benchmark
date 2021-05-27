@@ -16,7 +16,7 @@ ec:
     - imna
     - njnp
     - random
-    test_size: 5
+    test_size: 30
   ept2:
     __dictpath__: ec.ept2
     __doc__: null
@@ -31,7 +31,7 @@ ec:
     - imna
     - random
     step: 0.1
-    test_size: 5
+    test_size: 30
   ept3:
     __dictpath__: ec.ept3
     __doc__: null
