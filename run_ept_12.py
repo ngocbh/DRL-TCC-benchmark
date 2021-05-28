@@ -28,6 +28,7 @@ import gsa
 solvers = {
     "model002": model002.run,
     "model005": model005.run_model005,
+    "model005_1": model005.run_model005_1,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
@@ -78,7 +79,7 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
     plt.close('all')
     
 
-def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnParameters):
+def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnParameters, num_proc=4):
     used_solvers = ec.ept2.solvers if ept == 2 else ec.ept1.solvers
 
     def solver_wrapper(solver, jobs_desc, *args):
@@ -117,7 +118,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, num_sensors))
 
-        rets = joblib.Parallel(n_jobs=4)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=num_proc)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
@@ -151,7 +152,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
                         jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
                         jobs_desc.append((name, prob))
 
-        rets = joblib.Parallel(n_jobs=4)(joblib.delayed(solver_wrapper)(
+        rets = joblib.Parallel(n_jobs=num_proc)(joblib.delayed(solver_wrapper)(
             solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
 
         for i, ret in enumerate(rets):
@@ -223,6 +224,7 @@ if __name__ == '__main__':
                         action='append', required=True, type=int)
     parser.add_argument('--config', '-cf', default=None, type=str)
     parser.add_argument('--rerun', dest='rerun', nargs='*')
+    parser.add_argument('--num-proc', '-np', default=4, type=int)
 
     args = parser.parse_args()
 
@@ -249,5 +251,5 @@ if __name__ == '__main__':
     
     for ept in set(args.epts):
         if ept == 1 or ept == 2:
-            run_ept_1_2(ept, args.seed, save_dir=save_dir, rerun=rerun, wp_default=wp)
+            run_ept_1_2(ept, args.seed, save_dir=save_dir, rerun=rerun, wp_default=wp, num_proc=args.num_proc)
 

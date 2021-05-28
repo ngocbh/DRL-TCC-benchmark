@@ -1,0 +1,53 @@
+ec:
+  __dictpath__: ec
+  __doc__: null
+  checkpoint: model005/checkpoints/mc_20_10_0/21
+  drl_config: model005/configs/mc_20_10_5_small_1.yml
+  ept1:
+    __dictpath__: ec.ept1
+    __doc__: null
+    k_bit: 24000
+    max_num_sensors: 30
+    min_num_sensors: 20
+    num_targets: 10
+    solvers:
+    - model005_1
+    - imna
+    - njnp
+    - random
+    test_size: 100
+  ept2:
+    __dictpath__: ec.ept2
+    __doc__: null
+    k_bit: 32000
+    max_prob: 1
+    min_prob: 0.3
+    num_sensors: 20
+    num_targets: 10
+    solvers:
+    - model005_1
+    - imna
+    - njnp
+    - random
+    step: 0.1
+    test_size: 100
+  ept3:
+    __dictpath__: ec.ept3
+    __doc__: null
+    k_bit: 32000
+    max_prob: 1
+    min_prob: 0.3
+    num_sensors: 20
+    num_targets: 10
+    solvers:
+    - model005_1
+    - njnp
+    - imna
+    - random
+    step: 0.1
+    test_size: 100
+  max_episode_step: 2000
+  wrsn_config: model005/configs/mc_20_10_5_small_1.yml
+
+
+
