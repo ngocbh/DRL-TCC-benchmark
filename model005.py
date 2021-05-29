@@ -34,7 +34,7 @@ def run_model005_1(data_loader, name, save_dir, wp, max_step=1000):
                     dp.hidden_size,
                     dp.dropout).to(device)
     save_dir = os.path.join(save_dir, name)
-    checkpoint = 'model005/checkpoints/mc_20_10_5_small_1'
+    checkpoint = 'model005/checkpoints/mc_20_10_5_small_1/6'
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
