@@ -127,6 +127,36 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         for key, value in res.items():                
             pdump(value, f'{key}.pickle', save_dir)
 
+
+    def run_ept_4(save_dir):
+        num_sensors = ec.ept4.num_sensors
+        min_num_targets = ec.ept4.min_num_targets
+        max_num_targets = ec.ept4.max_num_targets
+        wp = copy.deepcopy(wp_default)
+        wp.k_bit = ec.ept4.k_bit
+        max_episode_step = ec.max_episode_step
+
+        res = defaultdict(list)
+        jobs_args = []
+        jobs_desc = []
+        for num_targets in range(min_num_targets, max_num_targets):
+            test_data = WRSNDataset(num_sensors, num_targets, ec.ept4.test_size, seed)
+            data_loader = DataLoader(test_data, 1, False, num_workers=0)
+            for name, solver in solvers.items():
+                if name in used_solvers:
+                    if not os.path.isfile(os.path.join(save_dir, f'{name}.pickle')) or name in rerun:
+                        jobs_args.append((data_loader, name, save_dir, wp, max_episode_step))
+                        jobs_desc.append((name, num_targets))
+
+        rets = joblib.Parallel(n_jobs=num_proc)(joblib.delayed(solver_wrapper)(
+            solvers[jobs_desc[i][0]], jobs_desc[i], *jobs_args[i]) for i in range(len(jobs_args)))
+
+        for i, ret in enumerate(rets):
+            res[jobs_desc[i][0]].append((jobs_desc[i][1], ret))
+
+        for key, value in res.items():                
+            pdump(value, f'{key}.pickle', save_dir)
+
     def run_ept_2(save_dir):
         num_targets = ec.ept2.num_targets
         num_sensors = ec.ept2.num_sensors
@@ -168,6 +198,8 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         run_ept_1(save_dir)
     elif ept == 2:
         run_ept_2(save_dir)
+    elif ept == 4:
+        run_ept_4(save_dir)
 
     data = {}
     for name in used_solvers:
@@ -207,6 +239,12 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
 
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
+    if ept == 1:
+        xlabel = 'no. sensors'
+    elif ept == 2:
+        xlabel = 'packet generation prob.'
+    elif ept == 4:
+        xlabel = 'no. targets'
         
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', 
                   save_dir, yscale=None, smooth_k=4)
@@ -250,6 +288,6 @@ if __name__ == '__main__':
         rerun = args.rerun 
     
     for ept in set(args.epts):
-        if ept == 1 or ept == 2:
+        if ept == 1 or ept == 2 or ept == 4:
             run_ept_1_2(ept, args.seed, save_dir=save_dir, rerun=rerun, wp_default=wp, num_proc=args.num_proc)
 

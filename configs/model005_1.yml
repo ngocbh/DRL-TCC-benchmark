@@ -39,12 +39,26 @@ ec:
     min_prob: 0.3
     num_sensors: 20
     num_targets: 10
+    repeat: 1
     solvers:
     - model005_1
     - njnp
     - imna
     - random
     step: 0.1
+    test_size: 1000
+  ept4:
+    __dictpath__: ec.ept4
+    __doc__: null
+    k_bit: 24000
+    max_num_targets: 20
+    min_num_targets: 10
+    num_sensors: 20
+    solvers:
+    - model005_1
+    - imna
+    - njnp
+    - random
     test_size: 1000
   max_episode_step: 2000
   wrsn_config: model005/configs/mc_20_10_5_small_1.yml
