@@ -247,9 +247,9 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         xlabel = 'no. targets'
         
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime', 
-                  save_dir, yscale=None, smooth_k=4)
+                  save_dir, yscale=None)
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime_log', 
-                  save_dir, yscale='log', smooth_k=4)
+                  save_dir, yscale='log')
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
     plot_inf_data(x, inf_data, xlabel, 'num. instances', 'inf_data', save_dir)
@@ -279,6 +279,8 @@ if __name__ == '__main__':
 
     torch.manual_seed(args.seed-1)
     np.random.seed(args.seed-2)
+    torch.set_printoptions(sci_mode=False)
+    np.set_printoptions(suppress=True)
 
     if args.rerun is None:
         rerun = []
