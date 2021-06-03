@@ -43,10 +43,13 @@ def smooth(y, box_pts):
 def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
                   yscale=None, smooth_k=1):
     plt.style.use('seaborn-darkgrid')
+    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'lines.linewidth': 2})
+    plt.rcParams.update({'axes.linewidth': 2})
     
     fig, ax = plt.subplots()
     for name, (mean, std) in data.items():
-        ax.plot(x, smooth(mean, smooth_k), label=name)
+        ax.plot(x, smooth(mean, smooth_k), label=name, alpha=0.9)
         if plot_std:
             ax.fill_between(x, 
                             smooth(np.clip(mean - std, 0.0, np.inf), smooth_k), 
@@ -58,22 +61,29 @@ def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
         plt.yscale(yscale)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    plt.tight_layout()
     # ax.set_title(title)
     plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
     plt.close('all')
 
 def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
     plt.style.use('seaborn-darkgrid')
+    plt.rcParams.update({'font.size': 20})
+    plt.rcParams.update({'lines.linewidth': 2})
+    plt.rcParams.update({'axes.linewidth': 2})
     
     fig, ax = plt.subplots()
     i = 0
     for name, model_data in data.items():
-        ax.plot(x, model_data, label=name, zorder=10-i)
+        print(name)
+        print(x, model_data)
+        ax.plot(x, model_data, label=name, zorder=10-i, alpha=0.9)
         i += 1
 
     ax.legend(frameon=True)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
+    plt.tight_layout()
     # ax.set_title(title)
     plt.savefig(os.path.join(save_dir, f'{title}.png'), dpi=400)
     plt.close('all')
@@ -209,6 +219,7 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
     node_failures = dict()
     aggregated_ecr = dict()
     inf_data = dict()
+    distance = dict()
     idx = None
     for name, model_data in data.items():
         idx = []
@@ -219,11 +230,16 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         aggregated_ecr_mean = []
         aggregated_ecr_std = []
         inf_model_data = []
+        distance_mean = []
+        distance_std = []
+
 
         for num_sensors, ret in model_data:
             idx.append(num_sensors)
             lifetime_mean.append(ret['lifetime_mean'])
             lifetime_std.append(ret['lifetime_std'])
+            distance_mean.append(ret['travel_dist_mean'])
+            distance_std.append(ret['travel_dist_std'])
             node_failures_mean.append(ret['node_failures_mean'])
             node_failures_std.append(ret['node_failures_std'])
             aggregated_ecr_mean.append(ret['aggregated_ecr_mean'])
@@ -232,10 +248,15 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
             num_inf_tests = np.sum(np.isinf(inf_lifetimes))
             inf_model_data.append(num_inf_tests/len(inf_lifetimes))
 
+        # print(name)
+        # print(lifetime_mean)
+        # print(lifetime_std)
         lifetimes[name] = (np.array(lifetime_mean), np.array(lifetime_std))
+        distance[name] = (np.array(distance_mean), np.array(distance_std))
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))
         aggregated_ecr[name] = (np.array(aggregated_ecr_mean), np.array(aggregated_ecr_std))
         inf_data[name] = inf_model_data
+    
 
     x = np.array(idx)
     xlabel = 'no. sensors' if ept == 1 else 'packet generation prob.'
@@ -250,6 +271,8 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
                   save_dir, yscale=None)
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime_log', 
                   save_dir, yscale='log')
+    plot_mean_std(x, distance, xlabel, 'travel distance', 'travel_dist', 
+                  save_dir)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
     plot_inf_data(x, inf_data, xlabel, 'num. instances', 'inf_data', save_dir)
