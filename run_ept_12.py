@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model005')
+sys.path.insert(0, './model006')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset
@@ -20,6 +20,7 @@ import copy
 import time
 
 import model005
+import model006
 import model002
 import imna
 import njnp
@@ -28,11 +29,13 @@ import gsa
 solvers = {
     "model002": model002.run,
     "model005": model005.run_model005,
+    "model006_2": model006.run_model006_2,
+    "model006_1": model006.run_model006_1,
     "model005_1": model005.run_model005_1,
     "gsa": gsa.run_gsa,
     "imna": imna.run_imna,
     "njnp": njnp.run_njnp,
-    "random": model005.run_random,
+    "random": model006.run_random,
 }
 
 def smooth(y, box_pts):
@@ -75,8 +78,6 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
     fig, ax = plt.subplots()
     i = 0
     for name, model_data in data.items():
-        print(name)
-        print(x, model_data)
         ax.plot(x, model_data, label=name, zorder=10-i, alpha=0.9)
         i += 1
 
@@ -248,9 +249,10 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
             num_inf_tests = np.sum(np.isinf(inf_lifetimes))
             inf_model_data.append(num_inf_tests/len(inf_lifetimes))
 
-        # print(name)
-        # print(lifetime_mean)
-        # print(lifetime_std)
+        print(name)
+        print(lifetime_mean)
+        print(lifetime_std)
+        print(inf_model_data)
         lifetimes[name] = (np.array(lifetime_mean), np.array(lifetime_std))
         distance[name] = (np.array(distance_mean), np.array(distance_std))
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))

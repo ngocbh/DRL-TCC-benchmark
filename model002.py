@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model005')
+sys.path.insert(0, './model006')
 
 from utils import device, pdump, pload
 from utils import WRSNDataset

@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './model005')
+sys.path.insert(0, './model006')
 
 import numpy as np
 import time
