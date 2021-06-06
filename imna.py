@@ -26,6 +26,8 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
     n = len(sn_state)
     d_mc = torch.zeros(n+1)
     no_requests = 0
+    mo = np.where(mask == 0)
+    cur_pos = mo[0][0] if len(mo[0]) > 0 else 0
 
     for i in range(0, n):
         d_mc_i = dist(Point(mc_state[0], mc_state[1]),
@@ -48,7 +50,7 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
             no_requests += 1
 
     if no_requests == 0: 
-        return np.random.choice(np.nonzero(mask__.cpu().numpy())[0]), 0.0
+        return cur_pos, 0.0
 
     latency = sn_state[:, 4] / sn_state[:, 5]
     w = torch.zeros(n, n).to(device)

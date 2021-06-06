@@ -6,7 +6,7 @@ ec:
   ept1:
     __dictpath__: ec.ept1
     __doc__: null
-    k_bit: 20000
+    k_bit: 16000
     max_num_sensors: 30
     min_num_sensors: 20
     num_targets: 10
@@ -50,7 +50,7 @@ ec:
   ept4:
     __dictpath__: ec.ept4
     __doc__: null
-    k_bit: 20000
+    k_bit: 16000
     max_num_targets: 20
     min_num_targets: 10
     num_sensors: 20

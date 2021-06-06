@@ -25,13 +25,16 @@ def njnp_decision_maker(mc_state, depot_state, sn_state, mask):
     n = len(sn_state)
     d_mc = torch.zeros(n+1)
     no_requests = 0
+    mo = np.where(mask == 0)
+    cur_pos = mo[0][0] if len(mo[0]) > 0 else 0
+
 
     for i in range(0, n):
         d_mc_i = dist(Point(mc_state[0], mc_state[1]),
                       Point(sn_state[i, 0], sn_state[i, 1]))
         d_mc[i+1] = d_mc_i
-
         t_mc_i = d_mc_i / mc_state[6]
+
         d_i_bs = dist(Point(sn_state[i, 0], sn_state[i, 1]),
                       Point(**wp.depot))
         t_charge_i = (sn_state[i, 2] - sn_state[i, 4] + sn_state[i, 5] * t_mc_i) / \
@@ -47,7 +50,7 @@ def njnp_decision_maker(mc_state, depot_state, sn_state, mask):
             no_requests += 1
 
     if no_requests == 0: 
-        return np.random.choice(np.nonzero(mask__.cpu().numpy())[0]), 0.0
+        return cur_pos, 0.0
     
     valid_Z_idx = mask_.cpu().numpy().nonzero()[0]
 
@@ -69,7 +72,7 @@ if __name__ == '__main__':
     torch.manual_seed(seed-1)
     np.random.seed(seed-2)
     dataset = WRSNDataset(20, 10, 1, 1)
-    wp.k_bit = 6000000
+    wp.k_bit = 20000
     data_loader = DataLoader(dataset, 1, False, num_workers=0)
     validate(data_loader, njnp_decision_maker, render=False, verbose=True, normalize=False)
     # validate(data_loader, random_decision_maker, render=False, verbose=True, normalize=False)
