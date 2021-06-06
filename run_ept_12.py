@@ -221,7 +221,9 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
     aggregated_ecr = dict()
     inf_data = dict()
     distance = dict()
+    rewards = dict()
     idx = None
+
     for name, model_data in data.items():
         idx = []
         lifetime_mean = []
@@ -233,12 +235,16 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
         inf_model_data = []
         distance_mean = []
         distance_std = []
+        reward_mean = []
+        reward_std = []
 
 
         for num_sensors, ret in model_data:
             idx.append(num_sensors)
             lifetime_mean.append(ret['lifetime_mean'])
             lifetime_std.append(ret['lifetime_std'])
+            reward_mean.append(ret['reward_mean'])
+            reward_std.append(ret['reward_std'])
             distance_mean.append(ret['travel_dist_mean'])
             distance_std.append(ret['travel_dist_std'])
             node_failures_mean.append(ret['node_failures_mean'])
@@ -249,11 +255,12 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
             num_inf_tests = np.sum(np.isinf(inf_lifetimes))
             inf_model_data.append(num_inf_tests/len(inf_lifetimes))
 
-        print(name)
-        print(lifetime_mean)
-        print(lifetime_std)
-        print(inf_model_data)
+        # print(name)
+        # print(lifetime_mean)
+        # print(lifetime_std)
+        # print(inf_model_data)
         lifetimes[name] = (np.array(lifetime_mean), np.array(lifetime_std))
+        rewards[name] = (np.array(reward_mean), np.array(reward_std))
         distance[name] = (np.array(distance_mean), np.array(distance_std))
         node_failures[name] = (np.array(node_failures_mean), np.array(node_failures_std))
         aggregated_ecr[name] = (np.array(aggregated_ecr_mean), np.array(aggregated_ecr_std))
@@ -274,6 +281,8 @@ def run_ept_1_2(ept, seed=123, save_dir='results', rerun=[], wp_default=WrsnPara
     plot_mean_std(x, lifetimes, xlabel, 'network lifetime', 'lifetime_log', 
                   save_dir, yscale='log')
     plot_mean_std(x, distance, xlabel, 'travel distance', 'travel_dist', 
+                  save_dir)
+    plot_mean_std(x, rewards, xlabel, 'total rewards', 'total_rewards', 
                   save_dir)
     plot_mean_std(x, node_failures, xlabel, 'node failures', 'node_failures', save_dir)
     plot_mean_std(x, aggregated_ecr, xlabel, 'agg. energy consumption rate', 'agg_ecr', save_dir)
