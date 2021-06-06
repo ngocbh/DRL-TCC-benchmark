@@ -18,7 +18,7 @@ def run_model006_2(data_loader, name, save_dir, wp, max_step=1000):
                     dp.hidden_size,
                     dp.dropout).to(device)
     save_dir = os.path.join(save_dir, name)
-    checkpoint = 'model006/checkpoints/mc_20_10_6_small_2/17'
+    checkpoint = 'model006/checkpoints/mc_20_10_6_small_2/19'
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
@@ -34,7 +34,7 @@ def run_model006_1(data_loader, name, save_dir, wp, max_step=1000):
                     dp.hidden_size,
                     dp.dropout).to(device)
     save_dir = os.path.join(save_dir, name)
-    checkpoint = 'model005/checkpoints/mc_20_10_5_small_1/10'
+    checkpoint = 'model006/checkpoints/mc_20_10_6_small_1/19'
     path = os.path.join(checkpoint, 'actor.pt')
     actor.load_state_dict(torch.load(path, device))
 
