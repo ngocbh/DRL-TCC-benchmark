@@ -35,6 +35,14 @@ solvers = {
     "random": model005.run_random,
 }
 
+labels = {
+    "model005_1": "DRL-TCC",
+    "imna": "INMA",
+    "njnp": "NJNP",
+    "random": "Random",
+    "gsa": "GSA"
+}
+
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
@@ -49,7 +57,7 @@ def plot_mean_std(x, data, xlabel, ylabel, title, save_dir, plot_std=True,
     
     fig, ax = plt.subplots()
     for name, (mean, std) in data.items():
-        ax.plot(x, smooth(mean, smooth_k), label=name, alpha=0.9)
+        ax.plot(x, smooth(mean, smooth_k), label=labels[name], alpha=0.9)
         if plot_std:
             ax.fill_between(x, 
                             smooth(np.clip(mean - std, 0.0, np.inf), smooth_k), 
@@ -75,9 +83,7 @@ def plot_inf_data(x, data, xlabel, ylabel, title, save_dir):
     fig, ax = plt.subplots()
     i = 0
     for name, model_data in data.items():
-        print(name)
-        print(x, model_data)
-        ax.plot(x, model_data, label=name, zorder=10-i, alpha=0.9)
+        ax.plot(x, model_data, label=labels[name], zorder=10-i, alpha=0.9)
         i += 1
 
     ax.legend(frameon=True)
