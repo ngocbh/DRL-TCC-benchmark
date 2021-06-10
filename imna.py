@@ -26,7 +26,7 @@ def imna_decision_maker(mc_state, depot_state, sn_state, mask):
     n = len(sn_state)
     d_mc = torch.zeros(n+1)
     no_requests = 0
-    mo = np.where(mask == 0)
+    mo = np.where(mask.cpu().numpy() == 0)
     cur_pos = mo[0][0] if len(mo[0]) > 0 else 0
 
     for i in range(0, n):
